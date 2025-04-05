@@ -1,0 +1,38 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Sloth Slimane Tumblr 2002 Gallery</title>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  </head>
+  <body>
+    <a-scene background="color: #f5f0ea">
+      <!-- Warm moody lighting -->
+      <a-entity light="type: directional; color: #ffbb88; intensity: 0.7" position="-2 4 3"></a-entity>
+      <a-entity light="type: ambient; color: #ffeecc"></a-entity>
+
+      <!-- Floor -->
+      <a-plane position="0 0 0" rotation="-90 0 0" width="12" height="6" color="#d6c6b8"></a-plane>
+
+      <!-- Wall -->
+      <a-box position="0 2 -3" depth="0.1" height="4" width="12" color="#fffaf4"></a-box>
+
+      <!-- Picture frames and images -->
+      <!-- Left Frame: Sloth -->
+      <a-box position="-4 2 -2.89" depth="0.02" height="2.2" width="3.2" color="#0fdba2"></a-box>
+      <a-plane position="-4 2 -2.87" width="3" height="2" src="https://tse1.mm.bing.net/th?id=OIP.vD63tvimwCoPWT0MLxxXvgHaEK&pid=Api" material="shader: flat"></a-plane>
+
+      <!-- Center Frame: Slimane 2002 -->
+      <a-box position="0 2 -2.89" depth="0.02" height="2.2" width="3.2" color="#0fdba2"></a-box>
+      <a-plane position="0 2 -2.87" width="3" height="2" src="https://tse1.mm.bing.net/th?id=OIP.iDY1_6XvMiVdqhCIcOyNtwHaLB&pid=Api" material="shader: flat"></a-plane>
+
+      <!-- Right Frame: Dior runway -->
+      <a-box position="4 2 -2.89" depth="0.02" height="2.2" width="3.2" color="#0fdba2"></a-box>
+      <a-plane position="4 2 -2.87" width="3" height="2" src="https://tse4.mm.bing.net/th?id=OIP.-ZhTh7_bL8FbhfUq7YhikwHaLB&pid=Api" material="shader: flat"></a-plane>
+
+      <!-- Camera -->
+      <a-entity camera wasd-controls look-controls position="0 1.6 5"></a-entity>
+    </a-scene>
+  </body>
+</html>
