@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chamber of the Twin Minds</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  </head>
+  <body>
+    <a-scene background="color: #0a0a0a">
+
+      <!-- The Pillars: One for Policy, One for Madness -->
+      <a-box position="-3 1.5 -4" depth="1" height="3" width="1" color="#2E86C1" opacity="0.9" shadow></a-box>
+      <a-box position="3 1.5 -4" depth="1" height="3" width="1" color="#A93226" opacity="0.9" shadow></a-box>
+
+      <!-- Floating Book Pages -->
+      <a-entity position="-3 3 -4" rotation="0 0 0" animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
+        <a-plane src="https://upload.wikimedia.org/wikipedia/en/e/e0/Simulacra_and_Simulation_%28cover%29.png" height="1.5" width="1" rotation="0 0 0"></a-plane>
+      </a-entity>
+      <a-entity position="3 3 -4" rotation="0 0 0" animation="property: rotation; to: 0 360 0; loop: true; dur: 12000">
+        <a-plane src="https://upload.wikimedia.org/wikipedia/en/b/b9/The_Illuminatus%21_Trilogy.jpg" height="1.5" width="1" rotation="0 0 0"></a-plane>
+      </a-entity>
+
+      <!-- The Bridge -->
+      <a-ring position="0 0.2 -4" rotation="-90 0 0" radius-inner="0.5" radius-outer="4" color="#FFFFFF" opacity="0.15"></a-ring>
+
+      <!-- The Twin Minds Avatar -->
+      <a-entity position="0 1.6 0">
+        <a-sphere position="0 1.5 -3" radius="0.5" color="#6C3483" opacity="0.9">
+          <a-animation attribute="position" to="0 1.6 -3" direction="alternate" dur="2000" repeat="indefinite"></a-animation>
+        </a-sphere>
+        <a-text value="You stand at the junction."
+                position="-1.5 0.5 -3"
+                color="#ffffff"
+                width="4">
+        </a-text>
+      </a-entity>
+
+      <!-- Light & Ambiance -->
+      <a-light type="point" position="0 5 0" intensity="1.5" distance="10" color="#00FFF7"></a-light>
+      <a-sky color="#0f0f1f"></a-sky>
+
+      <!-- Controls -->
+      <a-entity id="rig" position="0 1.6 0">
+        <a-entity camera look-controls wasd-controls>
+        </a-entity>
+      </a-entity>
+
+    </a-scene>
+  </body>
+</html>
