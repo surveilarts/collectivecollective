@@ -1,56 +1,68 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8" />
-    <title>Animated Minty Gradient 3D Simulation</title>
+    <meta charset="utf-8">
+    <title>Animated Minty Gradient 3D Simulation - Updated Colors</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script>
-      // Auto-rotation component so the sphere also slowly rotates
+      // Auto-rotate component to slowly turn the sphere
       AFRAME.registerComponent('auto-rotate', {
         tick: function (time, delta) {
-          this.el.object3D.rotation.y += delta / 2000;
+          this.el.object3D.rotation.y += delta / 2000; // Adjust rotation speed if needed
         }
       });
-      
-      // Component that animates a minty gradient on a canvas texture applied to the host entity
+
+      // Component to animate a minty gradient on a canvas texture applied to the host entity
       AFRAME.registerComponent('animate-gradient', {
-        init: function () {
-          // Create a canvas used to draw the animated gradient
+        init: function() {
+          var self = this;
+          // Create and set up a canvas element
           this.canvas = document.createElement('canvas');
           this.canvas.width = 256;
           this.canvas.height = 256;
           this.ctx = this.canvas.getContext('2d');
-          
-          // Create a THREE.CanvasTexture from the canvas so it can be used as a material map
+
+          // Generate a texture from the canvas that updates dynamically
           this.texture = new THREE.CanvasTexture(this.canvas);
-          
-          // Make sure the object’s material uses the canvas texture.
-          // If the mesh is already loaded, assign the texture immediately.
-          var mesh = this.el.getObject3D('mesh');
-          if (mesh && mesh.material) {
-            mesh.material.map = this.texture;
-            mesh.material.needsUpdate = true;
-          }
+          this.texture.minFilter = THREE.LinearFilter; // Ensures smoother texture scaling
+
+          // Wait for the mesh (geometry) to load so that we can assign the dynamic texture
+          this.el.addEventListener('loaded', function() {
+            var mesh = self.el.getObject3D('mesh');
+            if (mesh) {
+              // Handle both single and multi-material meshes
+              if (Array.isArray(mesh.material)) {
+                mesh.material.forEach(function(mat) {
+                  mat.map = self.texture;
+                  mat.needsUpdate = true;
+                });
+              } else {
+                mesh.material.map = self.texture;
+                mesh.material.needsUpdate = true;
+              }
+            }
+          });
         },
-        tick: function (time, delta) {
+        tick: function(time, delta) {
+          // Use the elapsed time to animate a rotating linear gradient
           var ctx = this.ctx;
           var width = this.canvas.width;
           var height = this.canvas.height;
-          // Calculate a rotating angle based on time (in seconds)
-          var angle = time / 1000;
-          // Define start and end points for the gradient based on the angle
+          // Divide time to slow down the animation; adjust as desired
+          var angle = time / 2000;
+          // Calculate dynamic start and end points for the gradient
           var x0 = width / 2 + Math.cos(angle) * (width / 2);
           var y0 = height / 2 + Math.sin(angle) * (height / 2);
           var x1 = width / 2 - Math.cos(angle) * (width / 2);
           var y1 = height / 2 - Math.sin(angle) * (height / 2);
-          // Create a linear gradient that rotates over time
+          // Create a new linear gradient using the computed coordinates
           var gradient = ctx.createLinearGradient(x0, y0, x1, y1);
           gradient.addColorStop(0, '#AAF0D1'); // Mint green
           gradient.addColorStop(1, '#66D1FF'); // Mint blue
-          // Draw the gradient on the canvas
+          // Fill the entire canvas with the animated gradient
           ctx.fillStyle = gradient;
           ctx.fillRect(0, 0, width, height);
-          // Mark the texture as needing update so A-Frame refreshes it
+          // Mark the texture for an update so changes are rendered
           this.texture.needsUpdate = true;
         }
       });
@@ -62,20 +74,17 @@
   <body>
     <a-scene>
       <!-- Lighting Setup -->
-      <a-entity light="type: ambient; intensity: 0.6" color="#FFFFFF"></a-entity>
+      <a-entity light="type: ambient; intensity: 0.6" color="#ffffff"></a-entity>
       <a-entity light="type: directional; intensity: 0.8" position="0 1 1"></a-entity>
       
-      <!-- Optional ground for a sense of space -->
-      <a-plane position="0 0 -3" rotation="-90 0 0" width="10" height="10" color="#222"></a-plane>
+      <!-- Ground (optional for spatial context) -->
+      <a-plane position="0 0 -3" rotation="-90 0 0" width="10" height="10" color="#222222"></a-plane>
       
-      <!-- Animated Sphere with the minty gradient -->
-      <a-sphere position="0 1.5 -3" radius="1" 
-                animate-gradient 
-                auto-rotate>
-      </a-sphere>
+      <!-- Animated sphere with updated colors. Using a flat shader helps ensure that the texture displays exactly as drawn -->
+      <a-sphere position="0 1.5 -3" radius="1" material="shader: flat" animate-gradient auto-rotate></a-sphere>
       
-      <!-- Simple Sky Background -->
-      <a-sky color="#333"></a-sky>
+      <!-- Sky background -->
+      <a-sky color="#333333"></a-sky>
     </a-scene>
   </body>
 </html>
