@@ -2,52 +2,65 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Enchanted Oasis: A Blue & Green Experience</title>
+    <title>Enchanted Oasis: Bouncing Orbs Optimized</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script>
-      // Bounce-orb component: Orbs move with a slow, randomized velocity and reverse direction on collision.
+      // Bounce-orb component with an epsilon offset to prevent sticking at boundaries.
       AFRAME.registerComponent('bounce-orb', {
         schema: {
-          speed: { type: 'number', default: 0.3 } // Slowed down for a gentle effect.
+          speed: { type: 'number', default: 0.3 } // Gentle speed for a calm effect.
         },
         init: function () {
-          // Initialize a random velocity vector.
+          // Give the orb a random velocity vector.
           this.velocity = new THREE.Vector3(
             (Math.random() * 2 - 1) * this.data.speed,
             (Math.random() * 2 - 1) * this.data.speed,
             (Math.random() * 2 - 1) * this.data.speed
           );
-          // Define room boundaries (assuming a room 10 x 10 with a floor at y=0 and ceiling at y=4).
+          // Define room boundaries (for a room of 10 x 10 and a vertical range for orbs).
           this.boundaries = {
             xMin: -5, xMax: 5,
-            yMin: 0.5, yMax: 3.5,  // Keeping orbs slightly above the floor and below the ceiling.
+            yMin: 0.5, yMax: 3.5,
             zMin: -5, zMax: 5
           };
+          // Small offset to push the orb away from the boundaries.
+          this.epsilon = 0.05;
         },
         tick: function (time, delta) {
           delta = delta / 1000; // Convert delta to seconds.
-          let pos = this.el.object3D.position;
+          var pos = this.el.object3D.position;
           pos.addScaledVector(this.velocity, delta);
-          
-          // Bounce off X-axis boundaries.
-          if (pos.x <= this.boundaries.xMin || pos.x >= this.boundaries.xMax) {
-            this.velocity.x = -this.velocity.x;
-            pos.x = THREE.Math.clamp(pos.x, this.boundaries.xMin, this.boundaries.xMax);
+
+          // X-axis handling
+          if (pos.x < this.boundaries.xMin) {
+            pos.x = this.boundaries.xMin + this.epsilon;
+            this.velocity.x = Math.abs(this.velocity.x);
+          } else if (pos.x > this.boundaries.xMax) {
+            pos.x = this.boundaries.xMax - this.epsilon;
+            this.velocity.x = -Math.abs(this.velocity.x);
           }
-          // Bounce off Y-axis boundaries.
-          if (pos.y <= this.boundaries.yMin || pos.y >= this.boundaries.yMax) {
-            this.velocity.y = -this.velocity.y;
-            pos.y = THREE.Math.clamp(pos.y, this.boundaries.yMin, this.boundaries.yMax);
+
+          // Y-axis handling
+          if (pos.y < this.boundaries.yMin) {
+            pos.y = this.boundaries.yMin + this.epsilon;
+            this.velocity.y = Math.abs(this.velocity.y);
+          } else if (pos.y > this.boundaries.yMax) {
+            pos.y = this.boundaries.yMax - this.epsilon;
+            this.velocity.y = -Math.abs(this.velocity.y);
           }
-          // Bounce off Z-axis boundaries.
-          if (pos.z <= this.boundaries.zMin || pos.z >= this.boundaries.zMax) {
-            this.velocity.z = -this.velocity.z;
-            pos.z = THREE.Math.clamp(pos.z, this.boundaries.zMin, this.boundaries.zMax);
+
+          // Z-axis handling
+          if (pos.z < this.boundaries.zMin) {
+            pos.z = this.boundaries.zMin + this.epsilon;
+            this.velocity.z = Math.abs(this.velocity.z);
+          } else if (pos.z > this.boundaries.zMax) {
+            pos.z = this.boundaries.zMax - this.epsilon;
+            this.velocity.z = -Math.abs(this.velocity.z);
           }
         }
       });
 
-      // Component to spawn multiple slow-moving orbs within the room.
+      // Component to spawn several orbs that bounce inside the room.
       AFRAME.registerComponent('spawn-orbs', {
         schema: {
           count: { type: 'int', default: 8 }
@@ -56,13 +69,13 @@
           const sceneEl = this.el;
           for (let i = 0; i < this.data.count; i++) {
             let orb = document.createElement('a-sphere');
-            orb.setAttribute('radius', '0.2');
-            // Set the orb's color to a sea green tone.
+            orb.setAttribute('radius', 0.2);
+            // Use a sea green color for the orb.
             orb.setAttribute('color', '#2E8B57');
-            // Randomize starting positions inside the room.
-            let posX = Math.random() * 8 - 4;  // from -4 to 4
-            let posY = Math.random() * 2 + 1;    // from 1 to 3
-            let posZ = Math.random() * 8 - 4;    // from -4 to 4
+            // Randomize starting positions within the room.
+            let posX = Math.random() * 8 - 4;
+            let posY = Math.random() * 2 + 1;
+            let posZ = Math.random() * 8 - 4;
             orb.setAttribute('position', { x: posX, y: posY, z: posZ });
             orb.setAttribute('bounce-orb', '');
             sceneEl.appendChild(orb);
@@ -76,17 +89,17 @@
   </head>
   <body>
     <a-scene spawn-orbs>
-      <!-- Lighting: Soft ambient and directional light to accentuate the color palette. -->
+      <!-- Soft lighting enhances the tranquil color palette -->
       <a-entity light="type: ambient; intensity: 0.6" color="#ffffff"></a-entity>
       <a-entity light="type: directional; intensity: 0.8" position="0 5 5"></a-entity>
       
-      <!-- Floor: Mint color for a calming base. -->
+      <!-- Floor: A soothing mint tone -->
       <a-plane position="0 0 0" rotation="-90 0 0" width="10" height="10" color="#AAF0D1"></a-plane>
       
-      <!-- Ceiling: A gentle, beautiful blue tone sets a serene mood. -->
+      <!-- Ceiling: A serene blue hue -->
       <a-plane position="0 4 0" rotation="90 0 0" width="10" height="10" color="#B3E5FC"></a-plane>
       
-      <!-- Walls: Front and back in a vibrant green, side walls in a soft sea green. -->
+      <!-- Walls: Front and back in a vibrant green; sides in a deep sea green -->
       <!-- Back Wall -->
       <a-plane position="0 2 -5" rotation="0 0 0" width="10" height="4" color="#22C55E"></a-plane>
       <!-- Front Wall -->
@@ -96,12 +109,12 @@
       <!-- Right Wall -->
       <a-plane position="5 2 0" rotation="0 -90 0" width="10" height="4" color="#2E8B57"></a-plane>
       
-      <!-- Camera Rig: Move around using WASD and look-controls. -->
+      <!-- Camera Rig with WASD and look-controls for exploration -->
       <a-entity id="rig" position="0 1.6 0">
         <a-entity camera wasd-controls look-controls></a-entity>
       </a-entity>
       
-      <!-- Sky: A soft blue sky adds extra depth to the scene. -->
+      <!-- A soft blue sky for added depth -->
       <a-sky color="#A1C4FD"></a-sky>
     </a-scene>
   </body>
