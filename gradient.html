@@ -2,45 +2,44 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Sea Green Bouncing Orbs - Optimized</title>
+    <title>Enchanted Oasis: A Blue & Green Experience</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script>
-      // Component that gives an orb a random velocity and makes it bounce off the room boundaries.
+      // Bounce-orb component: Orbs move with a slow, randomized velocity and reverse direction on collision.
       AFRAME.registerComponent('bounce-orb', {
         schema: {
-          speed: { type: 'number', default: 1 }
+          speed: { type: 'number', default: 0.3 } // Slowed down for a gentle effect.
         },
         init: function () {
-          // Give each orb a random velocity vector.
+          // Initialize a random velocity vector.
           this.velocity = new THREE.Vector3(
             (Math.random() * 2 - 1) * this.data.speed,
             (Math.random() * 2 - 1) * this.data.speed,
             (Math.random() * 2 - 1) * this.data.speed
           );
-          // Define room boundaries (room dimensions: 10 x 10; height: 3 units).
+          // Define room boundaries (assuming a room 10 x 10 with a floor at y=0 and ceiling at y=4).
           this.boundaries = {
             xMin: -5, xMax: 5,
-            yMin: 0.5, yMax: 3,  // Keep orbs above the floor and below the ceiling.
+            yMin: 0.5, yMax: 3.5,  // Keeping orbs slightly above the floor and below the ceiling.
             zMin: -5, zMax: 5
           };
         },
         tick: function (time, delta) {
-          // Update position based on velocity.
           delta = delta / 1000; // Convert delta to seconds.
           let pos = this.el.object3D.position;
           pos.addScaledVector(this.velocity, delta);
-
-          // Check x-axis boundaries.
+          
+          // Bounce off X-axis boundaries.
           if (pos.x <= this.boundaries.xMin || pos.x >= this.boundaries.xMax) {
             this.velocity.x = -this.velocity.x;
             pos.x = THREE.Math.clamp(pos.x, this.boundaries.xMin, this.boundaries.xMax);
           }
-          // Check y-axis boundaries.
+          // Bounce off Y-axis boundaries.
           if (pos.y <= this.boundaries.yMin || pos.y >= this.boundaries.yMax) {
             this.velocity.y = -this.velocity.y;
             pos.y = THREE.Math.clamp(pos.y, this.boundaries.yMin, this.boundaries.yMax);
           }
-          // Check z-axis boundaries.
+          // Bounce off Z-axis boundaries.
           if (pos.z <= this.boundaries.zMin || pos.z >= this.boundaries.zMax) {
             this.velocity.z = -this.velocity.z;
             pos.z = THREE.Math.clamp(pos.z, this.boundaries.zMin, this.boundaries.zMax);
@@ -48,23 +47,23 @@
         }
       });
 
-      // Component to spawn multiple bouncing orbs within the room.
-      AFRAME.registerComponent('spawn-bounce-orbs', {
+      // Component to spawn multiple slow-moving orbs within the room.
+      AFRAME.registerComponent('spawn-orbs', {
         schema: {
-          count: { type: 'int', default: 10 }
+          count: { type: 'int', default: 8 }
         },
         init: function () {
           const sceneEl = this.el;
           for (let i = 0; i < this.data.count; i++) {
-            const orb = document.createElement('a-sphere');
-            orb.setAttribute('radius', 0.2);
-            // Set the orb's material to a sea green color.
+            let orb = document.createElement('a-sphere');
+            orb.setAttribute('radius', '0.2');
+            // Set the orb's color to a sea green tone.
             orb.setAttribute('color', '#2E8B57');
-            // Randomize a starting position inside the room (inset from boundaries).
-            const x = (Math.random() * 9) - 4.5;
-            const y = (Math.random() * 2.5) + 0.5;
-            const z = (Math.random() * 9) - 4.5;
-            orb.setAttribute('position', { x: x, y: y, z: z });
+            // Randomize starting positions inside the room.
+            let posX = Math.random() * 8 - 4;  // from -4 to 4
+            let posY = Math.random() * 2 + 1;    // from 1 to 3
+            let posZ = Math.random() * 8 - 4;    // from -4 to 4
+            orb.setAttribute('position', { x: posX, y: posY, z: posZ });
             orb.setAttribute('bounce-orb', '');
             sceneEl.appendChild(orb);
           }
@@ -76,35 +75,34 @@
     </style>
   </head>
   <body>
-    <a-scene spawn-bounce-orbs>
-      <!-- Lighting Setup -->
-      <a-entity light="type: ambient; intensity: 0.5" color="#ffffff"></a-entity>
-      <a-entity light="type: directional; intensity: 0.6" position="0 5 5"></a-entity>
+    <a-scene spawn-orbs>
+      <!-- Lighting: Soft ambient and directional light to accentuate the color palette. -->
+      <a-entity light="type: ambient; intensity: 0.6" color="#ffffff"></a-entity>
+      <a-entity light="type: directional; intensity: 0.8" position="0 5 5"></a-entity>
       
-      <!-- Floor -->
-      <a-plane position="0 0 0" rotation="-90 0 0" width="10" height="10" color="#CCCCCC"></a-plane>
+      <!-- Floor: Mint color for a calming base. -->
+      <a-plane position="0 0 0" rotation="-90 0 0" width="10" height="10" color="#AAF0D1"></a-plane>
       
-      <!-- Ceiling -->
-      <a-plane position="0 3 0" rotation="90 0 0" width="10" height="10" color="#CCCCCC"></a-plane>
+      <!-- Ceiling: A gentle, beautiful blue tone sets a serene mood. -->
+      <a-plane position="0 4 0" rotation="90 0 0" width="10" height="10" color="#B3E5FC"></a-plane>
       
-      <!-- Walls -->
-      <!-- Left Wall -->
-      <a-plane position="-5 1.5 0" rotation="0 90 0" width="10" height="3" color="#66CDAA"></a-plane>
-      <!-- Right Wall -->
-      <a-plane position="5 1.5 0" rotation="0 -90 0" width="10" height="3" color="#66CDAA"></a-plane>
-      <!-- Front Wall -->
-      <a-plane position="0 1.5 -5" rotation="0 0 0" width="10" height="3" color="#66CDAA"></a-plane>
+      <!-- Walls: Front and back in a vibrant green, side walls in a soft sea green. -->
       <!-- Back Wall -->
-      <a-plane position="0 1.5 5" rotation="0 180 0" width="10" height="3" color="#66CDAA"></a-plane>
+      <a-plane position="0 2 -5" rotation="0 0 0" width="10" height="4" color="#22C55E"></a-plane>
+      <!-- Front Wall -->
+      <a-plane position="0 2 5" rotation="0 180 0" width="10" height="4" color="#22C55E"></a-plane>
+      <!-- Left Wall -->
+      <a-plane position="-5 2 0" rotation="0 90 0" width="10" height="4" color="#2E8B57"></a-plane>
+      <!-- Right Wall -->
+      <a-plane position="5 2 0" rotation="0 -90 0" width="10" height="4" color="#2E8B57"></a-plane>
       
-      <!-- Camera Rig with Movement Controls -->
+      <!-- Camera Rig: Move around using WASD and look-controls. -->
       <a-entity id="rig" position="0 1.6 0">
-        <!-- The embedded camera comes with look-controls and WASD movement -->
-        <a-entity camera look-controls wasd-controls></a-entity>
+        <a-entity camera wasd-controls look-controls></a-entity>
       </a-entity>
       
-      <!-- Sky for ambiance -->
-      <a-sky color="#333333"></a-sky>
+      <!-- Sky: A soft blue sky adds extra depth to the scene. -->
+      <a-sky color="#A1C4FD"></a-sky>
     </a-scene>
   </body>
 </html>
