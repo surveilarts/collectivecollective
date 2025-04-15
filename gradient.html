@@ -1,100 +1,108 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
-    <title>Magical Orbs Follower</title>
+    <meta charset="utf-8" />
+    <title>Sea Green Bouncing Orbs</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-    <style>
-      body { margin: 0; overflow: hidden; }
-    </style>
     <script>
-      // This component makes an entity orbit around the camera rig.
-      AFRAME.registerComponent('orb-orbit', {
+      // Component that gives an orb a random velocity and makes it bounce off set boundaries.
+      AFRAME.registerComponent('bounce-orb', {
         schema: {
-          radius: { type: 'number', default: 1.5 },       // Distance from the viewer.
-          speed: { type: 'number', default: 0.5 },          // Angular speed in radians per second.
-          phase: { type: 'number', default: 0 },            // Initial phase offset.
-          verticalOffset: { type: 'number', default: 0.5 }    // Vertical offset above the camera rig.
+          speed: { type: 'number', default: 1 }
         },
-        tick: function (time, delta) {
-          // Get the camera rig's position (must have id="cameraRig")
-          var cameraRig = document.getElementById('cameraRig');
-          if (!cameraRig) { return; }
-          var camPos = cameraRig.object3D.position;
-          var t = time / 1000;  // time in seconds
-          // Calculate the new angle for the orbit using time, speed, and phase offset.
-          var angle = this.data.phase + this.data.speed * t;
-          // Compute new x and z positions relative to the camera.
-          var x = camPos.x + this.data.radius * Math.cos(angle);
-          var z = camPos.z + this.data.radius * Math.sin(angle);
-          // y position is based on the camera rig with an additional vertical offset.
-          var y = camPos.y + this.data.verticalOffset;
-          this.el.object3D.position.set(x, y, z);
-        }
-      });
-
-      // Optional: A component that causes the orbs to pulsate (change in scale) over time
-      AFRAME.registerComponent('pulsate', {
-        schema: {
-          minScale: { type: 'number', default: 0.8 },
-          maxScale: { type: 'number', default: 1.2 },
-          speed: { type: 'number', default: 2 }  // Pulsations per second
-        },
-        tick: function (time, delta) {
-          var t = time / 1000;
-          var scaleFactor = this.data.minScale +
-            (this.data.maxScale - this.data.minScale) *
-            (0.5 + 0.5 * Math.sin(t * this.data.speed * Math.PI * 2));
-          this.el.object3D.scale.set(scaleFactor, scaleFactor, scaleFactor);
-        }
-      });
-
-      // Component that creates multiple magical orbs dynamically.
-      AFRAME.registerComponent('create-orbs', {
         init: function () {
-          // Number of orbs to create.
-          var orbCount = 10;
-          var sceneEl = this.el;
-          for (var i = 0; i < orbCount; i++) {
-            var orb = document.createElement('a-sphere');
-            orb.setAttribute('radius', '0.15'); // Small size for each orb.
-            // Give each orb a magical, emissive look.
-            orb.setAttribute('material', 'color: #AAF0D1; emissive: #66D1FF; shader: flat;');
-            // Randomize parameters for variety:
-            var radius = 1.5 + Math.random() * 0.5;         // Orbit radius between 1.5 and 2.0.
-            var speed = 0.3 + Math.random() * 0.5;            // Speed between 0.3 and 0.8.
-            var phase = Math.random() * Math.PI * 2;          // Phase offset between 0 and 2π.
-            var verticalOffset = 0.5 + Math.random() * 0.5;     // Vertical offset from camera rig (0.5-1.0).
-            orb.setAttribute('orb-orbit', 'radius: ' + radius +
-                                        '; speed: ' + speed +
-                                        '; phase: ' + phase +
-                                        '; verticalOffset: ' + verticalOffset);
-            // Add pulsate effect for extra magic.
-            orb.setAttribute('pulsate', '');
-            // Append this orb to the scene.
+          // Initialize a random velocity vector.
+          this.velocity = new THREE.Vector3(
+            (Math.random() * 2 - 1) * this.data.speed,
+            (Math.random() * 2 - 1) * this.data.speed,
+            (Math.random() * 2 - 1) * this.data.speed
+          );
+          // Define boundaries for a room of size 10 x 10 horizontally and 3 units high.
+          this.boundaries = {
+            xMin: -5, xMax: 5,
+            yMin: 0.5, yMax: 3,  // Keeping orbs above the floor (y=0) and below the ceiling (y=3)
+            zMin: -5, zMax: 5
+          };
+        },
+        tick: function (time, delta) {
+          // Update position based on velocity.
+          delta = delta / 1000; // Convert delta to seconds.
+          let pos = this.el.object3D.position;
+          pos.addScaledVector(this.velocity, delta);
+
+          // Check x-axis boundaries.
+          if (pos.x <= this.boundaries.xMin || pos.x >= this.boundaries.xMax) {
+            this.velocity.x = -this.velocity.x;
+            pos.x = THREE.Math.clamp(pos.x, this.boundaries.xMin, this.boundaries.xMax);
+          }
+          // Check y-axis boundaries.
+          if (pos.y <= this.boundaries.yMin || pos.y >= this.boundaries.yMax) {
+            this.velocity.y = -this.velocity.y;
+            pos.y = THREE.Math.clamp(pos.y, this.boundaries.yMin, this.boundaries.yMax);
+          }
+          // Check z-axis boundaries.
+          if (pos.z <= this.boundaries.zMin || pos.z >= this.boundaries.zMax) {
+            this.velocity.z = -this.velocity.z;
+            pos.z = THREE.Math.clamp(pos.z, this.boundaries.zMin, this.boundaries.zMax);
+          }
+        }
+      });
+
+      // Component that spawns multiple bounce orbs inside the scene.
+      AFRAME.registerComponent('spawn-bounce-orbs', {
+        schema: {
+          count: { type: 'int', default: 15 }
+        },
+        init: function () {
+          const sceneEl = this.el;
+          for (let i = 0; i < this.data.count; i++) {
+            const orb = document.createElement('a-sphere');
+            // Set a small radius for each orb.
+            orb.setAttribute('radius', 0.2);
+            // Sea green color.
+            orb.setAttribute('color', '#2E8B57');
+            // Position the orb randomly inside the room (a bit inset from the boundaries).
+            const x = (Math.random() * 9) - 4.5;
+            const y = (Math.random() * 2.5) + 0.5;
+            const z = (Math.random() * 9) - 4.5;
+            orb.setAttribute('position', { x: x, y: y, z: z });
+            // Attach the bounce-orb behavior.
+            orb.setAttribute('bounce-orb', '');
             sceneEl.appendChild(orb);
           }
         }
       });
     </script>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+    </style>
   </head>
   <body>
-    <a-scene create-orbs>
-      <!-- Ambient lighting -->
-      <a-entity light="type: ambient; intensity: 0.8" color="#FFFFFF"></a-entity>
-      <!-- Directional light for subtle shadows -->
-      <a-entity light="type: directional; intensity: 0.6" position="0 1 1"></a-entity>
-      <!-- Ground plane -->
-      <a-plane color="#222222" rotation="-90 0 0" width="50" height="50"></a-plane>
+    <a-scene spawn-bounce-orbs>
+      <!-- Lighting setup -->
+      <a-entity light="type: ambient; intensity: 0.5" color="#ffffff"></a-entity>
+      <a-entity light="type: directional; intensity: 0.6" position="0 5 5"></a-entity>
       
-      <!-- Camera Rig: The target for our magical orbs. -->
-      <a-entity id="cameraRig" position="0 1.6 0">
-        <a-entity camera look-controls wasd-controls></a-entity>
-        <a-entity hand-controls="hand: left"></a-entity>
-        <a-entity hand-controls="hand: right"></a-entity>
-      </a-entity>
+      <!-- Floor -->
+      <a-plane position="0 0 0" rotation="-90 0 0" width="10" height="10" color="#CCCCCC"></a-plane>
       
-      <!-- A sky for ambiance -->
+      <!-- Ceiling -->
+      <a-plane position="0 3 0" rotation="90 0 0" width="10" height="10" color="#CCCCCC"></a-plane>
+      
+      <!-- Walls -->
+      <!-- Left Wall -->
+      <a-plane position="-5 1.5 0" rotation="0 90 0" width="10" height="3" color="#66CDAA"></a-plane>
+      <!-- Right Wall -->
+      <a-plane position="5 1.5 0" rotation="0 -90 0" width="10" height="3" color="#66CDAA"></a-plane>
+      <!-- Front Wall -->
+      <a-plane position="0 1.5 -5" rotation="0 0 0" width="10" height="3" color="#66CDAA"></a-plane>
+      <!-- Back Wall -->
+      <a-plane position="0 1.5 5" rotation="0 180 0" width="10" height="3" color="#66CDAA"></a-plane>
+      
+      <!-- Optional sky for ambiance -->
       <a-sky color="#333333"></a-sky>
     </a-scene>
   </body>
