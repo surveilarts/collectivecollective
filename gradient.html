@@ -2,88 +2,99 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Animated Minty Gradient 3D Simulation - Updated Colors</title>
+    <title>Magical Orbs Follower</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-    <script>
-      // Auto-rotate component to slowly turn the sphere
-      AFRAME.registerComponent('auto-rotate', {
-        tick: function (time, delta) {
-          this.el.object3D.rotation.y += delta / 2000; // Adjust rotation speed if needed
-        }
-      });
-
-      // Component to animate a minty gradient on a canvas texture applied to the host entity
-      AFRAME.registerComponent('animate-gradient', {
-        init: function() {
-          var self = this;
-          // Create and set up a canvas element
-          this.canvas = document.createElement('canvas');
-          this.canvas.width = 256;
-          this.canvas.height = 256;
-          this.ctx = this.canvas.getContext('2d');
-
-          // Generate a texture from the canvas that updates dynamically
-          this.texture = new THREE.CanvasTexture(this.canvas);
-          this.texture.minFilter = THREE.LinearFilter; // Ensures smoother texture scaling
-
-          // Wait for the mesh (geometry) to load so that we can assign the dynamic texture
-          this.el.addEventListener('loaded', function() {
-            var mesh = self.el.getObject3D('mesh');
-            if (mesh) {
-              // Handle both single and multi-material meshes
-              if (Array.isArray(mesh.material)) {
-                mesh.material.forEach(function(mat) {
-                  mat.map = self.texture;
-                  mat.needsUpdate = true;
-                });
-              } else {
-                mesh.material.map = self.texture;
-                mesh.material.needsUpdate = true;
-              }
-            }
-          });
-        },
-        tick: function(time, delta) {
-          // Use the elapsed time to animate a rotating linear gradient
-          var ctx = this.ctx;
-          var width = this.canvas.width;
-          var height = this.canvas.height;
-          // Divide time to slow down the animation; adjust as desired
-          var angle = time / 2000;
-          // Calculate dynamic start and end points for the gradient
-          var x0 = width / 2 + Math.cos(angle) * (width / 2);
-          var y0 = height / 2 + Math.sin(angle) * (height / 2);
-          var x1 = width / 2 - Math.cos(angle) * (width / 2);
-          var y1 = height / 2 - Math.sin(angle) * (height / 2);
-          // Create a new linear gradient using the computed coordinates
-          var gradient = ctx.createLinearGradient(x0, y0, x1, y1);
-          gradient.addColorStop(0, '#AAF0D1'); // Mint green
-          gradient.addColorStop(1, '#66D1FF'); // Mint blue
-          // Fill the entire canvas with the animated gradient
-          ctx.fillStyle = gradient;
-          ctx.fillRect(0, 0, width, height);
-          // Mark the texture for an update so changes are rendered
-          this.texture.needsUpdate = true;
-        }
-      });
-    </script>
     <style>
       body { margin: 0; overflow: hidden; }
     </style>
+    <script>
+      // This component makes an entity orbit around the camera rig.
+      AFRAME.registerComponent('orb-orbit', {
+        schema: {
+          radius: { type: 'number', default: 1.5 },       // Distance from the viewer.
+          speed: { type: 'number', default: 0.5 },          // Angular speed in radians per second.
+          phase: { type: 'number', default: 0 },            // Initial phase offset.
+          verticalOffset: { type: 'number', default: 0.5 }    // Vertical offset above the camera rig.
+        },
+        tick: function (time, delta) {
+          // Get the camera rig's position (must have id="cameraRig")
+          var cameraRig = document.getElementById('cameraRig');
+          if (!cameraRig) { return; }
+          var camPos = cameraRig.object3D.position;
+          var t = time / 1000;  // time in seconds
+          // Calculate the new angle for the orbit using time, speed, and phase offset.
+          var angle = this.data.phase + this.data.speed * t;
+          // Compute new x and z positions relative to the camera.
+          var x = camPos.x + this.data.radius * Math.cos(angle);
+          var z = camPos.z + this.data.radius * Math.sin(angle);
+          // y position is based on the camera rig with an additional vertical offset.
+          var y = camPos.y + this.data.verticalOffset;
+          this.el.object3D.position.set(x, y, z);
+        }
+      });
+
+      // Optional: A component that causes the orbs to pulsate (change in scale) over time
+      AFRAME.registerComponent('pulsate', {
+        schema: {
+          minScale: { type: 'number', default: 0.8 },
+          maxScale: { type: 'number', default: 1.2 },
+          speed: { type: 'number', default: 2 }  // Pulsations per second
+        },
+        tick: function (time, delta) {
+          var t = time / 1000;
+          var scaleFactor = this.data.minScale +
+            (this.data.maxScale - this.data.minScale) *
+            (0.5 + 0.5 * Math.sin(t * this.data.speed * Math.PI * 2));
+          this.el.object3D.scale.set(scaleFactor, scaleFactor, scaleFactor);
+        }
+      });
+
+      // Component that creates multiple magical orbs dynamically.
+      AFRAME.registerComponent('create-orbs', {
+        init: function () {
+          // Number of orbs to create.
+          var orbCount = 10;
+          var sceneEl = this.el;
+          for (var i = 0; i < orbCount; i++) {
+            var orb = document.createElement('a-sphere');
+            orb.setAttribute('radius', '0.15'); // Small size for each orb.
+            // Give each orb a magical, emissive look.
+            orb.setAttribute('material', 'color: #AAF0D1; emissive: #66D1FF; shader: flat;');
+            // Randomize parameters for variety:
+            var radius = 1.5 + Math.random() * 0.5;         // Orbit radius between 1.5 and 2.0.
+            var speed = 0.3 + Math.random() * 0.5;            // Speed between 0.3 and 0.8.
+            var phase = Math.random() * Math.PI * 2;          // Phase offset between 0 and 2π.
+            var verticalOffset = 0.5 + Math.random() * 0.5;     // Vertical offset from camera rig (0.5-1.0).
+            orb.setAttribute('orb-orbit', 'radius: ' + radius +
+                                        '; speed: ' + speed +
+                                        '; phase: ' + phase +
+                                        '; verticalOffset: ' + verticalOffset);
+            // Add pulsate effect for extra magic.
+            orb.setAttribute('pulsate', '');
+            // Append this orb to the scene.
+            sceneEl.appendChild(orb);
+          }
+        }
+      });
+    </script>
   </head>
   <body>
-    <a-scene>
-      <!-- Lighting Setup -->
-      <a-entity light="type: ambient; intensity: 0.6" color="#ffffff"></a-entity>
-      <a-entity light="type: directional; intensity: 0.8" position="0 1 1"></a-entity>
+    <a-scene create-orbs>
+      <!-- Ambient lighting -->
+      <a-entity light="type: ambient; intensity: 0.8" color="#FFFFFF"></a-entity>
+      <!-- Directional light for subtle shadows -->
+      <a-entity light="type: directional; intensity: 0.6" position="0 1 1"></a-entity>
+      <!-- Ground plane -->
+      <a-plane color="#222222" rotation="-90 0 0" width="50" height="50"></a-plane>
       
-      <!-- Ground (optional for spatial context) -->
-      <a-plane position="0 0 -3" rotation="-90 0 0" width="10" height="10" color="#222222"></a-plane>
+      <!-- Camera Rig: The target for our magical orbs. -->
+      <a-entity id="cameraRig" position="0 1.6 0">
+        <a-entity camera look-controls wasd-controls></a-entity>
+        <a-entity hand-controls="hand: left"></a-entity>
+        <a-entity hand-controls="hand: right"></a-entity>
+      </a-entity>
       
-      <!-- Animated sphere with updated colors. Using a flat shader helps ensure that the texture displays exactly as drawn -->
-      <a-sphere position="0 1.5 -3" radius="1" material="shader: flat" animate-gradient auto-rotate></a-sphere>
-      
-      <!-- Sky background -->
+      <!-- A sky for ambiance -->
       <a-sky color="#333333"></a-sky>
     </a-scene>
   </body>
