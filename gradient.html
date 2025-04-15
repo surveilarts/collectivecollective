@@ -2,25 +2,25 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Sea Green Bouncing Orbs</title>
+    <title>Sea Green Bouncing Orbs - Optimized</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script>
-      // Component that gives an orb a random velocity and makes it bounce off set boundaries.
+      // Component that gives an orb a random velocity and makes it bounce off the room boundaries.
       AFRAME.registerComponent('bounce-orb', {
         schema: {
           speed: { type: 'number', default: 1 }
         },
         init: function () {
-          // Initialize a random velocity vector.
+          // Give each orb a random velocity vector.
           this.velocity = new THREE.Vector3(
             (Math.random() * 2 - 1) * this.data.speed,
             (Math.random() * 2 - 1) * this.data.speed,
             (Math.random() * 2 - 1) * this.data.speed
           );
-          // Define boundaries for a room of size 10 x 10 horizontally and 3 units high.
+          // Define room boundaries (room dimensions: 10 x 10; height: 3 units).
           this.boundaries = {
             xMin: -5, xMax: 5,
-            yMin: 0.5, yMax: 3,  // Keeping orbs above the floor (y=0) and below the ceiling (y=3)
+            yMin: 0.5, yMax: 3,  // Keep orbs above the floor and below the ceiling.
             zMin: -5, zMax: 5
           };
         },
@@ -48,25 +48,23 @@
         }
       });
 
-      // Component that spawns multiple bounce orbs inside the scene.
+      // Component to spawn multiple bouncing orbs within the room.
       AFRAME.registerComponent('spawn-bounce-orbs', {
         schema: {
-          count: { type: 'int', default: 15 }
+          count: { type: 'int', default: 10 }
         },
         init: function () {
           const sceneEl = this.el;
           for (let i = 0; i < this.data.count; i++) {
             const orb = document.createElement('a-sphere');
-            // Set a small radius for each orb.
             orb.setAttribute('radius', 0.2);
-            // Sea green color.
+            // Set the orb's material to a sea green color.
             orb.setAttribute('color', '#2E8B57');
-            // Position the orb randomly inside the room (a bit inset from the boundaries).
+            // Randomize a starting position inside the room (inset from boundaries).
             const x = (Math.random() * 9) - 4.5;
             const y = (Math.random() * 2.5) + 0.5;
             const z = (Math.random() * 9) - 4.5;
             orb.setAttribute('position', { x: x, y: y, z: z });
-            // Attach the bounce-orb behavior.
             orb.setAttribute('bounce-orb', '');
             sceneEl.appendChild(orb);
           }
@@ -74,15 +72,12 @@
       });
     </script>
     <style>
-      body {
-        margin: 0;
-        overflow: hidden;
-      }
+      body { margin: 0; overflow: hidden; }
     </style>
   </head>
   <body>
     <a-scene spawn-bounce-orbs>
-      <!-- Lighting setup -->
+      <!-- Lighting Setup -->
       <a-entity light="type: ambient; intensity: 0.5" color="#ffffff"></a-entity>
       <a-entity light="type: directional; intensity: 0.6" position="0 5 5"></a-entity>
       
@@ -102,7 +97,13 @@
       <!-- Back Wall -->
       <a-plane position="0 1.5 5" rotation="0 180 0" width="10" height="3" color="#66CDAA"></a-plane>
       
-      <!-- Optional sky for ambiance -->
+      <!-- Camera Rig with Movement Controls -->
+      <a-entity id="rig" position="0 1.6 0">
+        <!-- The embedded camera comes with look-controls and WASD movement -->
+        <a-entity camera look-controls wasd-controls></a-entity>
+      </a-entity>
+      
+      <!-- Sky for ambiance -->
       <a-sky color="#333333"></a-sky>
     </a-scene>
   </body>
