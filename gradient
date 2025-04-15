@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Minty Gradient 3D Simulation</title>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script>
+      // Component to slowly auto-rotate an entity
+      AFRAME.registerComponent('auto-rotate', {
+        tick: function (time, delta) {
+          this.el.object3D.rotation.y += delta / 2000; // adjust speed here
+        }
+      });
+      
+      // When the window loads, create a gradient texture dynamically
+      window.addEventListener('load', function() {
+        // Create a canvas element to draw the gradient
+        var canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 256;
+        var ctx = canvas.getContext('2d');
+        // Create a horizontal linear gradient from left (mint green) to right (mint blue)
+        var gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+        gradient.addColorStop(0, '#AAF0D1'); // Mint green
+        gradient.addColorStop(1, '#66D1FF'); // Mint blue
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Convert the canvas drawing to a data URL so it can be used as a texture
+        var dataURL = canvas.toDataURL();
+        
+        // Create an image element for the texture and add it to A-Frame’s asset management system
+        var img = document.createElement('img');
+        img.id = 'gradientTexture';
+        img.src = dataURL;
+        document.querySelector('a-assets').appendChild(img);
+      });
+    </script>
+    <style>
+      body { margin: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <a-scene>
+      <!-- A-Frame Asset Management for dynamic textures -->
+      <a-assets></a-assets>
+      
+      <!-- Lighting -->
+      <a-entity light="type: ambient; color: #FFFFFF; intensity: 0.6"></a-entity>
+      <a-entity light="type: directional; intensity: 0.8" position="0 1 1"></a-entity>
+      
+      <!-- Ground (optional for spatial context) -->
+      <a-plane position="0 0 -3" rotation="-90 0 0" width="10" height="10" color="#222"></a-plane>
+      
+      <!-- Rotating sphere displaying the minty gradient -->
+      <a-sphere position="0 1.5 -3" radius="1"
+                material="src: #gradientTexture; repeat: 2 2"
+                auto-rotate>
+      </a-sphere>
+      
+      <!-- Sky background -->
+      <a-sky color="#333"></a-sky>
+    </a-scene>
+  </body>
+</html>
